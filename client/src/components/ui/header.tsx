@@ -52,7 +52,7 @@ export default function Header() {
                 Profile
               </a>
             </Link>
-            {user?.isAdmin && (
+            {user && user.isAdmin && (
               <Link href="/admin">
                 <a className={`transition-colors ${isActive("/admin") ? "text-blue-600" : "text-gray-700 hover:text-blue-600"}`}>
                   Admin
@@ -74,7 +74,7 @@ export default function Header() {
             {/* Profile Avatar */}
             <Link href="/profile">
               <img 
-                src={user?.profileImageUrl || `https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}&background=3b82f6&color=fff`}
+                src={user?.profileImageUrl || `https://ui-avatars.com/api/?name=${user?.firstName || 'U'}+${user?.lastName || 'ser'}&background=3b82f6&color=fff`}
                 alt="User profile" 
                 className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-md cursor-pointer"
               />
@@ -126,7 +126,7 @@ export default function Header() {
                   Profile
                 </a>
               </Link>
-              {user?.isAdmin && (
+              {user && user.isAdmin && (
                 <Link href="/admin">
                   <a className={`px-4 py-2 rounded-lg transition-colors ${isActive("/admin") ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}>
                     Admin

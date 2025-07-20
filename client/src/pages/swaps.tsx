@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { ArrowLeftRight, Check, X, Clock, CheckCircle, MessageSquare, Star } from "lucide-react";
+import type { User, Skill, SwapRequest } from "@shared/schema";
 
 export default function Swaps() {
   const { toast } = useToast();
@@ -35,7 +36,12 @@ export default function Swaps() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const { data: swapRequests, isLoading: swapsLoading, error } = useQuery({
+  const { data: swapRequests = [], isLoading: swapsLoading, error } = useQuery<(SwapRequest & {
+    requester: User;
+    receiver: User;
+    offeredSkill: Skill;
+    requestedSkill: Skill;
+  })[]>({
     queryKey: ["/api/swap-requests"],
     enabled: isAuthenticated,
     retry: false,
@@ -110,21 +116,21 @@ export default function Swaps() {
     return null;
   }
 
-  const pendingRequests = swapRequests?.filter((req: any) => req.status === 'pending') || [];
-  const acceptedSwaps = swapRequests?.filter((req: any) => req.status === 'accepted') || [];
-  const completedSwaps = swapRequests?.filter((req: any) => req.status === 'completed') || [];
-  const rejectedSwaps = swapRequests?.filter((req: any) => req.status === 'rejected') || [];
+  const pendingRequests = swapRequests.filter(req => req.status === 'pending');
+  const acceptedSwaps = swapRequests.filter(req => req.status === 'accepted');
+  const completedSwaps = swapRequests.filter(req => req.status === 'completed');
+  const rejectedSwaps = swapRequests.filter(req => req.status === 'rejected');
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
 
-  const getOtherUser = (swap: any) => {
-    return swap.requesterId === user.id ? swap.receiver : swap.requester;
+  const getOtherUser = (swap: SwapRequest & { requester: User; receiver: User }) => {
+    return swap.requesterId === user!.id ? swap.receiver : swap.requester;
   };
 
-  const isCurrentUserRequester = (swap: any) => {
-    return swap.requesterId === user.id;
+  const isCurrentUserRequester = (swap: SwapRequest) => {
+    return swap.requesterId === user!.id;
   };
 
   const SwapCard = ({ swap, showActions = true }: { swap: any; showActions?: boolean }) => {

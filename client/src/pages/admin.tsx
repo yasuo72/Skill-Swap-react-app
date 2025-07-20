@@ -47,13 +47,18 @@ export default function Admin() {
     }
   }, [isAuthenticated, isLoading, user?.isAdmin, toast]);
 
-  const { data: platformStats, isLoading: statsLoading } = useQuery({
+  const { data: platformStats = {}, isLoading: statsLoading } = useQuery<{
+    totalUsers?: number;
+    totalSwaps?: number;
+    flaggedContent?: number;
+    averageRating?: number;
+  }>({
     queryKey: ["/api/admin/stats"],
     enabled: isAuthenticated && user?.isAdmin,
     retry: false,
   });
 
-  const { data: allUsers, isLoading: usersLoading } = useQuery({
+  const { data: allUsers = [], isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ["/api/admin/users", { limit: 50 }],
     enabled: isAuthenticated && user?.isAdmin,
     retry: false,
@@ -110,12 +115,12 @@ export default function Admin() {
     return null;
   }
 
-  const filteredUsers = allUsers?.filter((u: any) => {
+  const filteredUsers = allUsers.filter(u => {
     if (!searchQuery) return true;
     const fullName = `${u.firstName || ''} ${u.lastName || ''}`.toLowerCase();
     return fullName.includes(searchQuery.toLowerCase()) || 
            u.email?.toLowerCase().includes(searchQuery.toLowerCase());
-  }) || [];
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">

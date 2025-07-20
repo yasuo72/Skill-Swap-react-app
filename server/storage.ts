@@ -23,6 +23,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, ilike, desc, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
@@ -242,6 +243,10 @@ export class DatabaseStorage implements IStorage {
     offeredSkill: Skill;
     requestedSkill: Skill;
   })[]> {
+    const userAlias = alias(users, 'receiver');
+    const offeredSkillAlias = alias(skills, 'offered_skill');
+    const requestedSkillAlias = alias(skills, 'requested_skill');
+    
     let query = db
       .select({
         id: swapRequests.id,
@@ -255,40 +260,15 @@ export class DatabaseStorage implements IStorage {
         createdAt: swapRequests.createdAt,
         updatedAt: swapRequests.updatedAt,
         requester: users,
-        receiver: {
-          id: sql`receiver.id`,
-          email: sql`receiver.email`,
-          firstName: sql`receiver.first_name`,
-          lastName: sql`receiver.last_name`,
-          profileImageUrl: sql`receiver.profile_image_url`,
-          title: sql`receiver.title`,
-          location: sql`receiver.location`,
-          isPublic: sql`receiver.is_public`,
-          availability: sql`receiver.availability`,
-          isAdmin: sql`receiver.is_admin`,
-          createdAt: sql`receiver.created_at`,
-          updatedAt: sql`receiver.updated_at`,
-        },
-        offeredSkill: {
-          id: sql`offered_skill.id`,
-          name: sql`offered_skill.name`,
-          category: sql`offered_skill.category`,
-          icon: sql`offered_skill.icon`,
-          createdAt: sql`offered_skill.created_at`,
-        },
-        requestedSkill: {
-          id: sql`requested_skill.id`,
-          name: sql`requested_skill.name`,
-          category: sql`requested_skill.category`,
-          icon: sql`requested_skill.icon`,
-          createdAt: sql`requested_skill.created_at`,
-        },
+        receiver: userAlias,
+        offeredSkill: offeredSkillAlias,
+        requestedSkill: requestedSkillAlias,
       })
       .from(swapRequests)
       .innerJoin(users, eq(swapRequests.requesterId, users.id))
-      .innerJoin(sql`users as receiver`, sql`swap_requests.receiver_id = receiver.id`)
-      .innerJoin(sql`skills as offered_skill`, sql`swap_requests.offered_skill_id = offered_skill.id`)
-      .innerJoin(sql`skills as requested_skill`, sql`swap_requests.requested_skill_id = requested_skill.id`)
+      .innerJoin(userAlias, eq(swapRequests.receiverId, userAlias.id))
+      .innerJoin(offeredSkillAlias, eq(swapRequests.offeredSkillId, offeredSkillAlias.id))
+      .innerJoin(requestedSkillAlias, eq(swapRequests.requestedSkillId, requestedSkillAlias.id))
       .where(or(eq(swapRequests.requesterId, userId), eq(swapRequests.receiverId, userId)));
     
     if (status) {

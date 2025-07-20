@@ -30,7 +30,7 @@ export default function SwapRequestModal({ isOpen, onClose, targetUser }: SwapRe
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: mySkillsOffered } = useQuery({
+  const { data: mySkillsOffered = [] } = useQuery<Array<{skillId: number; skill: {name: string}}>>({
     queryKey: ["/api/user/skills/offered"],
     enabled: isOpen,
   });
@@ -118,11 +118,11 @@ export default function SwapRequestModal({ isOpen, onClose, targetUser }: SwapRe
                 <SelectValue placeholder="Select a skill you can teach..." />
               </SelectTrigger>
               <SelectContent>
-                {mySkillsOffered?.map((userSkill: any) => (
+                {mySkillsOffered.map((userSkill) => (
                   <SelectItem key={userSkill.skillId} value={userSkill.skillId.toString()}>
                     {userSkill.skill.name}
                   </SelectItem>
-                )) || []}
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -141,7 +141,7 @@ export default function SwapRequestModal({ isOpen, onClose, targetUser }: SwapRe
                   <SelectItem key={userSkill.skill.id} value={userSkill.skill.id.toString()}>
                     {userSkill.skill.name}
                   </SelectItem>
-                )) || []}
+                )) ?? []}
               </SelectContent>
             </Select>
           </div>

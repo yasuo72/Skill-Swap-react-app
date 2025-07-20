@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { Users, TrendingUp, MessageSquare, Star, ArrowRight, Calendar } from "lucide-react";
+import { Users, TrendingUp, MessageSquare, Star, ArrowRight, Calendar, Search } from "lucide-react";
+import type { SwapRequest, User, Skill } from "@shared/schema";
 
 export default function Home() {
   const { toast } = useToast();
@@ -29,13 +30,23 @@ export default function Home() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const { data: swapRequests, isLoading: swapRequestsLoading } = useQuery({
+  const { data: swapRequests = [], isLoading: swapRequestsLoading } = useQuery<(SwapRequest & {
+    requester: User;
+    receiver: User;
+    offeredSkill: Skill;
+    requestedSkill: Skill;
+  })[]>({
     queryKey: ["/api/swap-requests"],
     retry: false,
     enabled: isAuthenticated,
   });
 
-  const { data: recentUsers, isLoading: usersLoading } = useQuery({
+  const { data: recentUsers = [], isLoading: usersLoading } = useQuery<(User & {
+    skillsOffered: Array<{skill: Skill}>;
+    skillsWanted: Array<{skill: Skill}>;
+    averageRating?: number;
+    totalSwaps?: number;
+  })[]>({
     queryKey: ["/api/users/browse", "limit=6"],
     retry: false,
     enabled: isAuthenticated,
@@ -49,8 +60,8 @@ export default function Home() {
     return null;
   }
 
-  const pendingRequests = swapRequests?.filter((req: any) => req.status === 'pending') || [];
-  const activeSwaps = swapRequests?.filter((req: any) => req.status === 'accepted') || [];
+  const pendingRequests = swapRequests.filter(req => req.status === 'pending');
+  const activeSwaps = swapRequests.filter(req => req.status === 'accepted');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -218,9 +229,9 @@ export default function Home() {
                     </div>
                   ))}
                 </div>
-              ) : recentUsers && recentUsers.length > 0 ? (
+              ) : recentUsers.length > 0 ? (
                 <div className="space-y-4">
-                  {recentUsers.slice(0, 3).map((user: any) => (
+                  {recentUsers.slice(0, 3).map((user) => (
                     <div key={user.id} className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         <img 

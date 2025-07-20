@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Camera, Edit, Eye, Plus, Star, TrendingUp, Users, X } from "lucide-react";
+import type { User, Skill, UserSkillOffered, UserSkillWanted, Feedback } from "@shared/schema";
 
 export default function Profile() {
   const { toast } = useToast();
@@ -60,25 +61,25 @@ export default function Profile() {
     }
   }, [user]);
 
-  const { data: skillsOffered, isLoading: skillsOfferedLoading } = useQuery({
+  const { data: skillsOffered = [], isLoading: skillsOfferedLoading } = useQuery<(UserSkillOffered & { skill: Skill })[]>({
     queryKey: ["/api/user/skills/offered"],
     enabled: isAuthenticated,
     retry: false,
   });
 
-  const { data: skillsWanted, isLoading: skillsWantedLoading } = useQuery({
+  const { data: skillsWanted = [], isLoading: skillsWantedLoading } = useQuery<(UserSkillWanted & { skill: Skill })[]>({
     queryKey: ["/api/user/skills/wanted"],
     enabled: isAuthenticated,
     retry: false,
   });
 
-  const { data: allSkills } = useQuery({
+  const { data: allSkills = [] } = useQuery<Skill[]>({
     queryKey: ["/api/skills"],
     enabled: isAuthenticated,
     retry: false,
   });
 
-  const { data: userFeedback } = useQuery({
+  const { data: userFeedback = [] } = useQuery<(Feedback & { reviewer: User })[]>({
     queryKey: ["/api/users", user?.id, "feedback"],
     enabled: isAuthenticated && !!user?.id,
     retry: false,
@@ -214,8 +215,8 @@ export default function Profile() {
     return null;
   }
 
-  const averageRating = userFeedback && userFeedback.length > 0
-    ? userFeedback.reduce((sum: number, f: any) => sum + f.rating, 0) / userFeedback.length
+  const averageRating = userFeedback.length > 0
+    ? userFeedback.reduce((sum, f) => sum + f.rating, 0) / userFeedback.length
     : 0;
 
   const displayName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User';

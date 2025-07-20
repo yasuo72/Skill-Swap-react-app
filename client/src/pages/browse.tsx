@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Filter, MapPin, Clock, Star } from "lucide-react";
+import type { User, Skill, UserSkillOffered, UserSkillWanted } from "@shared/schema";
 
 export default function Browse() {
   const { toast } = useToast();
@@ -38,7 +39,12 @@ export default function Browse() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const { data: users, isLoading: usersLoading, error } = useQuery({
+  const { data: users = [], isLoading: usersLoading, error } = useQuery<(User & {
+    skillsOffered: Array<UserSkillOffered & { skill: Skill }>;
+    skillsWanted: Array<UserSkillWanted & { skill: Skill }>;
+    averageRating?: number;
+    totalSwaps?: number;
+  })[]>({
     queryKey: ["/api/users/browse", { 
       skill: searchQuery, 
       availability: filters.availability,
@@ -63,9 +69,9 @@ export default function Browse() {
   }, [error, toast]);
 
   const handleRequestSwap = (userId: string) => {
-    const user = users?.find((u: any) => u.id === userId);
-    if (user) {
-      setSelectedUser(user);
+    const foundUser = users.find(u => u.id === userId);
+    if (foundUser) {
+      setSelectedUser(foundUser);
       setIsSwapModalOpen(true);
     }
   };
