@@ -1,0 +1,150 @@
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
+import { Link, useLocation } from "wouter";
+import { Bell, Menu, ArrowRight } from "lucide-react";
+import { useState } from "react";
+
+export default function Header() {
+  const { user } = useAuth();
+  const [location] = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const isActive = (path: string) => {
+    if (path === "/" && location === "/") return true;
+    if (path !== "/" && location.startsWith(path)) return true;
+    return false;
+  };
+
+  return (
+    <header className="sticky top-0 z-50 backdrop-blur-md bg-white/90 border-b border-gray-200">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center space-x-3">
+            <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
+              <ArrowRight className="text-white text-sm rotate-90" />
+            </div>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Skill Swap
+            </h1>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-8">
+            <Link href="/">
+              <a className={`transition-colors ${isActive("/") ? "text-blue-600" : "text-gray-700 hover:text-blue-600"}`}>
+                Home
+              </a>
+            </Link>
+            <Link href="/browse">
+              <a className={`transition-colors ${isActive("/browse") ? "text-blue-600" : "text-gray-700 hover:text-blue-600"}`}>
+                Browse
+              </a>
+            </Link>
+            <Link href="/swaps">
+              <a className={`transition-colors ${isActive("/swaps") ? "text-blue-600" : "text-gray-700 hover:text-blue-600"}`}>
+                My Swaps
+              </a>
+            </Link>
+            <Link href="/profile">
+              <a className={`transition-colors ${isActive("/profile") ? "text-blue-600" : "text-gray-700 hover:text-blue-600"}`}>
+                Profile
+              </a>
+            </Link>
+            {user?.isAdmin && (
+              <Link href="/admin">
+                <a className={`transition-colors ${isActive("/admin") ? "text-blue-600" : "text-gray-700 hover:text-blue-600"}`}>
+                  Admin
+                </a>
+              </Link>
+            )}
+          </nav>
+
+          {/* User Actions */}
+          <div className="flex items-center space-x-4">
+            {/* Notifications */}
+            <Button variant="ghost" size="sm" className="relative">
+              <Bell className="h-4 w-4" />
+              <Badge variant="destructive" className="absolute -top-1 -right-1 w-5 h-5 text-xs p-0 flex items-center justify-center">
+                3
+              </Badge>
+            </Button>
+
+            {/* Profile Avatar */}
+            <Link href="/profile">
+              <img 
+                src={user?.profileImageUrl || `https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}&background=3b82f6&color=fff`}
+                alt="User profile" 
+                className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-md cursor-pointer"
+              />
+            </Link>
+
+            {/* Logout */}
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.location.href = "/api/logout"}
+              className="hidden sm:inline-flex"
+            >
+              Logout
+            </Button>
+
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="md:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              <Menu className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 py-4">
+            <nav className="flex flex-col space-y-2">
+              <Link href="/">
+                <a className={`px-4 py-2 rounded-lg transition-colors ${isActive("/") ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}>
+                  Home
+                </a>
+              </Link>
+              <Link href="/browse">
+                <a className={`px-4 py-2 rounded-lg transition-colors ${isActive("/browse") ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}>
+                  Browse
+                </a>
+              </Link>
+              <Link href="/swaps">
+                <a className={`px-4 py-2 rounded-lg transition-colors ${isActive("/swaps") ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}>
+                  My Swaps
+                </a>
+              </Link>
+              <Link href="/profile">
+                <a className={`px-4 py-2 rounded-lg transition-colors ${isActive("/profile") ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}>
+                  Profile
+                </a>
+              </Link>
+              {user?.isAdmin && (
+                <Link href="/admin">
+                  <a className={`px-4 py-2 rounded-lg transition-colors ${isActive("/admin") ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}>
+                    Admin
+                  </a>
+                </Link>
+              )}
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.location.href = "/api/logout"}
+                className="mx-4 mt-2"
+              >
+                Logout
+              </Button>
+            </nav>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}
