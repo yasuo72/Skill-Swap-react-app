@@ -1,0 +1,203 @@
+📢 Prompt for AI Design Tool (UI/UX + Layout)
+Design a modern, responsive web application UI for a platform called Skill Swap — a community-driven exchange hub where users can list the skills they offer, discover others' skills, and trade expertise by sending and accepting swap requests.
+
+🎯 Overall Theme and Look
+Friendly, modern, and inclusive aesthetic
+
+Rounded corners, clean typography, and light theme by default
+
+Mobile-responsive layout
+
+Use of tags, avatars, and skill badges
+
+Easy navigation with tabs and filters
+
+Accessible color palette with soft blues, purples, or greens
+
+🏠 Landing Page (Before Login)
+Hero section with tagline like: “Trade Skills. Learn Anything. Teach Everything.”
+
+Illustrations of diverse people sharing knowledge
+
+CTA buttons: “Join Now”, “Browse Skills”
+
+Quick intro to how the platform works (3-step diagram or icon cards)
+
+Footer with links: About, Contact, FAQs, Terms, Login
+
+🔐 Auth Screens
+Login Page: Email/password fields, “Continue with Google”, forgot password
+
+Signup Page: Name, email, password, optional profile photo
+
+Soft illustrations and clean form cards
+
+👤 User Profile Page
+Profile picture, name, optional location
+
+Toggle: Public / Private profile visibility
+
+Sections:
+
+Skills Offered (as editable chips or tags)
+
+Skills Wanted (as editable chips or tags)
+
+Availability (multi-select: weekdays, weekends, evenings, custom)
+
+Edit profile button (with slide-in modal or card)
+
+“View My Public Profile” preview button
+
+🧭 Main Navigation (Top or Sidebar)
+Home / Dashboard
+
+Search / Browse Skills
+
+My Swaps
+
+Messages
+
+Feedback
+
+Admin Panel (if role is admin)
+
+Profile
+
+Logout
+
+🔍 Search / Browse Users Page
+Search bar with placeholder: “Search by skill (e.g., Excel, Python)”
+
+Filters:
+
+Availability
+
+Location (optional)
+
+Visibility (public only)
+
+Results Grid:
+
+Each user card shows:
+
+Name
+
+Profile pic
+
+Skills offered (tag view)
+
+Skills wanted (tag view)
+
+Availability badges
+
+“Request Swap” button
+
+🔁 Swap Request Modal
+Opens when “Request Swap” is clicked
+
+Fields:
+
+Skill you’re offering
+
+Skill you want in return
+
+Optional message box
+
+Availability sync (optional date picker)
+
+Submit or cancel buttons
+
+📋 My Swaps Dashboard
+Tabs:
+
+Pending Requests
+
+Accepted Swaps
+
+Completed Swaps
+
+Rejected / Deleted
+
+Each swap card shows:
+
+Who you’re swapping with
+
+Skills exchanged
+
+Current status (badge)
+
+Action buttons: Accept, Reject, Delete
+
+⭐ Feedback Form Modal
+Pops up after swap completion
+
+Star rating system (1–5 stars)
+
+Optional text review
+
+Submit & Skip buttons
+
+🧑‍💼 Admin Panel UI
+Accessible only to users with admin role. Clean dashboard layout with cards, tables, and tabs.
+
+📌 Sections:
+User Management
+
+List with filter: All users / Banned users
+
+Buttons: Ban, Unban
+
+Skill Description Moderation
+
+List of flagged skills with accept/reject actions
+
+Swap Monitoring
+
+Table view of all swap requests with status filter
+
+Platform Announcements
+
+Compose form for global messages (title, message, target audience dropdown)
+
+Reports & Exports
+
+Buttons to export: User Activity Log, Swap Stats, Feedback History (CSV)
+
+📱 Mobile Layout Adaptations
+Bottom navbar for quick access
+
+Hamburger menu for profile/admin/settings
+
+Stack elements vertically: profile cards, swap forms, etc.
+
+Swipe gestures for tabs or swap request actions (Accept/Reject)
+
+📌 Additional Design Notes
+Use cards, accordions, and tabs for content organization
+
+Feedback/ratings visible on public profiles (with stars and short comments)
+
+Display "skill tags" with icons where possible (e.g., code for Python, paint for Photoshop)
+
+Show badge or label for highly rated users (like "Top Swapper")
+
+This prompt can be pasted directly into Figma AI, Uizard, Galileo AI, or any other AI design generation tool to create a pixel-perfect UI for the Skill Swap Platform.
+
+Would you like a separate backend prompt for AI-based backend generation tools like ToolJet, Appsmith, or Codegen?
+
+
+
+
+
+
+
+
+
+Ask ChatGPT
+
+
+
+Tools
+
+
