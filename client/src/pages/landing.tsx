@@ -21,13 +21,13 @@ export default function Landing() {
             <div className="flex items-center space-x-4">
               <Button 
                 variant="outline" 
-                onClick={() => window.location.href = "/api/login"}
+                onClick={() => window.location.href = "/auth"}
                 className="hidden sm:inline-flex"
               >
                 Sign In
               </Button>
               <Button 
-                onClick={() => window.location.href = "/api/login"}
+                onClick={() => window.location.href = "/auth"}
                 className="gradient-primary text-white border-0 hover:shadow-lg transition-all duration-300"
               >
                 Join Now
@@ -54,7 +54,7 @@ export default function Landing() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <Button 
                 size="lg"
-                onClick={() => window.location.href = "/api/login"}
+                onClick={() => window.location.href = "/auth"}
                 className="gradient-primary text-white border-0 hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
               >
                 <ArrowRight className="mr-2 h-4 w-4" />

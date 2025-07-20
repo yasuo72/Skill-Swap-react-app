@@ -26,9 +26,13 @@ import { eq, and, or, ilike, desc, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 export interface IStorage {
-  // User operations (required for Replit Auth)
-  getUser(id: string): Promise<User | undefined>;
-  upsertUser(user: UpsertUser): Promise<User>;
+  // User operations (custom auth)
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: any): Promise<User>;
+  updateUserStatus(id: number, isAdmin: boolean): Promise<User>;
+  getAllUsers(limit?: number, offset?: number): Promise<User[]>;
+  getPlatformStats(): Promise<any>;
   
   // Skill operations
   getAllSkills(): Promise<Skill[]>;
@@ -36,8 +40,8 @@ export interface IStorage {
   searchSkills(query: string): Promise<Skill[]>;
   
   // User skills operations
-  getUserSkillsOffered(userId: string): Promise<(UserSkillOffered & { skill: Skill })[]>;
-  getUserSkillsWanted(userId: string): Promise<(UserSkillWanted & { skill: Skill })[]>;
+  getUserSkillsOffered(userId: number): Promise<(UserSkillOffered & { skill: Skill })[]>;
+  getUserSkillsWanted(userId: number): Promise<(UserSkillWanted & { skill: Skill })[]>;
   addUserSkillOffered(userSkill: InsertUserSkillOffered): Promise<UserSkillOffered>;
   addUserSkillWanted(userSkill: InsertUserSkillWanted): Promise<UserSkillWanted>;
   removeUserSkillOffered(id: number): Promise<void>;
@@ -59,7 +63,7 @@ export interface IStorage {
   
   // Swap requests
   createSwapRequest(swapRequest: InsertSwapRequest): Promise<SwapRequest>;
-  getSwapRequestsForUser(userId: string, status?: string): Promise<(SwapRequest & {
+  getSwapRequestsForUser(userId: number, status?: string): Promise<(SwapRequest & {
     requester: User;
     receiver: User;
     offeredSkill: Skill;
@@ -74,39 +78,23 @@ export interface IStorage {
   // Messages
   createMessage(message: InsertMessage): Promise<Message>;
   getSwapRequestMessages(swapRequestId: number): Promise<(Message & { sender: User })[]>;
-  
-  // Admin operations
-  getAllUsers(limit?: number, offset?: number): Promise<(User & { 
-    totalSwaps: number; 
-    averageRating: number; 
-  })[]>;
-  updateUserStatus(userId: string, isAdmin?: boolean): Promise<User>;
-  getFlaggedContent(): Promise<any[]>;
-  getPlatformStats(): Promise<{
-    totalUsers: number;
-    totalSwaps: number;
-    averageRating: number;
-    flaggedContent: number;
-  }>;
 }
 
 export class DatabaseStorage implements IStorage {
-  async getUser(id: string): Promise<User | undefined> {
+  async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
   }
 
-  async upsertUser(userData: UpsertUser): Promise<User> {
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(userData: any): Promise<User> {
     const [user] = await db
       .insert(users)
       .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
-          updatedAt: new Date(),
-        },
-      })
       .returning();
     return user;
   }
@@ -124,7 +112,7 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(skills).where(ilike(skills.name, `%${query}%`));
   }
 
-  async getUserSkillsOffered(userId: string): Promise<(UserSkillOffered & { skill: Skill })[]> {
+  async getUserSkillsOffered(userId: number): Promise<(UserSkillOffered & { skill: Skill })[]> {
     return await db
       .select({
         id: userSkillsOffered.id,
@@ -139,7 +127,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userSkillsOffered.userId, userId));
   }
 
-  async getUserSkillsWanted(userId: string): Promise<(UserSkillWanted & { skill: Skill })[]> {
+  async getUserSkillsWanted(userId: number): Promise<(UserSkillWanted & { skill: Skill })[]> {
     return await db
       .select({
         id: userSkillsWanted.id,
@@ -187,10 +175,14 @@ export class DatabaseStorage implements IStorage {
     const limit = filters?.limit || 10;
     const offset = filters?.offset || 0;
     
-    let query = db.select().from(users).where(eq(users.isPublic, true));
+    const baseQuery = db.select().from(users).where(eq(users.isPublic, true));
     
+    let query = baseQuery;
     if (filters?.location) {
-      query = query.where(ilike(users.location, `%${filters.location}%`));
+      query = baseQuery.where(and(
+        eq(users.isPublic, true),
+        ilike(users.location, `%${filters.location}%`)
+      ));
     }
     
     const usersList = await query.limit(limit).offset(offset);
@@ -237,7 +229,7 @@ export class DatabaseStorage implements IStorage {
     return newSwapRequest;
   }
 
-  async getSwapRequestsForUser(userId: string, status?: string): Promise<(SwapRequest & {
+  async getSwapRequestsForUser(userId: number, status?: string): Promise<(SwapRequest & {
     requester: User;
     receiver: User;
     offeredSkill: Skill;
@@ -272,7 +264,10 @@ export class DatabaseStorage implements IStorage {
       .where(or(eq(swapRequests.requesterId, userId), eq(swapRequests.receiverId, userId)));
     
     if (status) {
-      query = query.where(eq(swapRequests.status, status));
+      query = query.where(and(
+        or(eq(swapRequests.requesterId, userId), eq(swapRequests.receiverId, userId)),
+        eq(swapRequests.status, status)
+      ));
     }
     
     return await query.orderBy(desc(swapRequests.createdAt));
@@ -306,7 +301,7 @@ export class DatabaseStorage implements IStorage {
       })
       .from(feedback)
       .innerJoin(users, eq(feedback.reviewerId, users.id))
-      .where(eq(feedback.revieweeId, userId))
+      .where(eq(feedback.revieweeId, parseInt(userId)))
       .orderBy(desc(feedback.createdAt));
   }
 
@@ -332,56 +327,19 @@ export class DatabaseStorage implements IStorage {
       .orderBy(messages.createdAt);
   }
 
-  async getAllUsers(limit?: number, offset?: number): Promise<(User & { 
-    totalSwaps: number; 
-    averageRating: number; 
-  })[]> {
+  async getAllUsers(limit?: number, offset?: number): Promise<User[]> {
     const usersList = await db.select().from(users)
       .limit(limit || 50)
       .offset(offset || 0)
       .orderBy(desc(users.createdAt));
     
-    const usersWithStats = await Promise.all(
-      usersList.map(async (user) => {
-        const totalSwapsResult = await db
-          .select({ count: sql<number>`count(*)` })
-          .from(swapRequests)
-          .where(
-            and(
-              or(eq(swapRequests.requesterId, user.id), eq(swapRequests.receiverId, user.id)),
-              eq(swapRequests.status, "completed")
-            )
-          );
-        
-        const feedbackData = await db
-          .select({ rating: feedback.rating })
-          .from(feedback)
-          .where(eq(feedback.revieweeId, user.id));
-        
-        const averageRating = feedbackData.length > 0 
-          ? feedbackData.reduce((sum, f) => sum + f.rating, 0) / feedbackData.length 
-          : 0;
-        
-        return {
-          ...user,
-          totalSwaps: totalSwapsResult[0]?.count || 0,
-          averageRating,
-        };
-      })
-    );
-    
-    return usersWithStats;
+    return usersList;
   }
 
-  async updateUserStatus(userId: string, isAdmin?: boolean): Promise<User> {
-    const updateData: Partial<User> = { updatedAt: new Date() };
-    if (isAdmin !== undefined) {
-      updateData.isAdmin = isAdmin;
-    }
-    
+  async updateUserStatus(userId: number, isAdmin: boolean): Promise<User> {
     const [updatedUser] = await db
       .update(users)
-      .set(updateData)
+      .set({ isAdmin, updatedAt: new Date() })
       .where(eq(users.id, userId))
       .returning();
     return updatedUser;

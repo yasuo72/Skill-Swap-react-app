@@ -25,9 +25,11 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
-// User storage table (required for Replit Auth)
+// User storage table (custom authentication)
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().notNull(),
+  id: serial("id").primaryKey(),
+  username: varchar("username", { length: 50 }).notNull().unique(),
+  password: varchar("password", { length: 255 }).notNull(),
   email: varchar("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
@@ -51,7 +53,7 @@ export const skills = pgTable("skills", {
 
 export const userSkillsOffered = pgTable("user_skills_offered", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   skillId: integer("skill_id").notNull().references(() => skills.id, { onDelete: "cascade" }),
   proficiencyLevel: varchar("proficiency_level", { length: 20 }).default("intermediate"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -59,7 +61,7 @@ export const userSkillsOffered = pgTable("user_skills_offered", {
 
 export const userSkillsWanted = pgTable("user_skills_wanted", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   skillId: integer("skill_id").notNull().references(() => skills.id, { onDelete: "cascade" }),
   urgency: varchar("urgency", { length: 20 }).default("medium"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -67,8 +69,8 @@ export const userSkillsWanted = pgTable("user_skills_wanted", {
 
 export const swapRequests = pgTable("swap_requests", {
   id: serial("id").primaryKey(),
-  requesterId: varchar("requester_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  receiverId: varchar("receiver_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  requesterId: integer("requester_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  receiverId: integer("receiver_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   offeredSkillId: integer("offered_skill_id").notNull().references(() => skills.id),
   requestedSkillId: integer("requested_skill_id").notNull().references(() => skills.id),
   message: text("message"),
@@ -81,8 +83,8 @@ export const swapRequests = pgTable("swap_requests", {
 export const feedback = pgTable("feedback", {
   id: serial("id").primaryKey(),
   swapRequestId: integer("swap_request_id").notNull().references(() => swapRequests.id, { onDelete: "cascade" }),
-  reviewerId: varchar("reviewer_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  revieweeId: varchar("reviewee_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  reviewerId: integer("reviewer_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  revieweeId: integer("reviewee_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   rating: integer("rating").notNull(),
   comment: text("comment"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -91,7 +93,7 @@ export const feedback = pgTable("feedback", {
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
   swapRequestId: integer("swap_request_id").notNull().references(() => swapRequests.id, { onDelete: "cascade" }),
-  senderId: varchar("sender_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  senderId: integer("sender_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   content: text("content").notNull(),
   isRead: boolean("is_read").default(false),
   createdAt: timestamp("created_at").defaultNow(),
