@@ -147,7 +147,7 @@ We'd love to hear from you! Whether you have questions, suggestions, or just wan
 
 - 🐛 **Issues**: [GitHub Issues](https://github.com/yasuo72/Skill-Swap-react-app/issues)
 - 💬 **Discussions**: [GitHub Discussions](https://github.com/yasuo72/Skill-Swap-react-app/discussions)
-- 📧 **Email**: [Contact Us](mailto:your-email@example.com)
+- 📧 **Email**: [Contact Us](rs965198@gmail.com)
 
 ## 📄 License
 
@@ -165,7 +165,7 @@ Special thanks to:
 
 <div align="center">
 
-**Made with ❤️ for the learning community**
+**Made with ❤️ by Rohit for the learning community**
 
 *Start your skill-swapping journey today!*
 
