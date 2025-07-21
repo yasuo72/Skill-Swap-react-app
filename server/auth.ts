@@ -7,6 +7,8 @@ import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
 import connectPg from "connect-pg-simple";
+import { emailService } from "./email";
+import { backgroundJobsService } from "./jobs";
 
 declare global {
   namespace Express {
@@ -37,6 +39,10 @@ export function setupAuth(app: Express) {
     createTableIfMissing: true,
     ttl: sessionTtl,
     tableName: "sessions",
+    // Add error handling
+    errorLog: (error: Error) => {
+      console.error('Session store error:', error.message);
+    },
   });
 
   const sessionSettings: session.SessionOptions = {
@@ -109,6 +115,10 @@ export function setupAuth(app: Express) {
 
       req.login(user, (err) => {
         if (err) return next(err);
+        
+        // Schedule welcome email
+        backgroundJobsService.scheduleWelcomeEmail(user.id);
+        
         res.status(201).json({ 
           id: user.id, 
           username: user.username, 

@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./auth";
@@ -10,17 +10,68 @@ import {
   insertFeedbackSchema,
   insertMessageSchema 
 } from "@shared/schema";
+import { cacheService } from "./cache";
+import { upload, FileUploadService, handleUploadError } from "./upload";
+import { emailService } from "./email";
+import { wsService } from "./websocket";
+import { 
+  generalLimiter, 
+  authLimiter, 
+  uploadLimiter, 
+  messageLimiter,
+  sanitizeInput,
+  validateContent,
+  requireAdmin,
+  requireOwnership
+} from "./security";
+import { setupAPIDocumentation } from "./docs";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup API documentation
+  setupAPIDocumentation(app);
+  
   // Auth middleware
   setupAuth(app);
 
   // Auth routes are handled in auth.ts
+  
+  // File upload routes
+  app.post('/api/upload/profile-image', 
+    uploadLimiter,
+    isAuthenticated, 
+    upload.single('image'), 
+    async (req: any, res: Response) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ message: 'No file uploaded' });
+        }
+        
+        const userId = req.user.id;
+        const imageUrl = await FileUploadService.processProfileImage(req.file, userId);
+        
+        // Update user profile with new image URL
+        // This would require adding updateUser method to storage
+        
+        res.json({ imageUrl });
+      } catch (error) {
+        console.error('Profile image upload error:', error);
+        res.status(500).json({ message: 'Failed to upload image' });
+      }
+    },
+    handleUploadError
+  );
 
-  // Skills routes
+  // Skills routes with caching
   app.get('/api/skills', async (req, res) => {
     try {
+      // Check cache first
+      const cachedSkills = cacheService.getCachedSkills();
+      if (cachedSkills) {
+        return res.json(cachedSkills);
+      }
+      
       const skills = await storage.getAllSkills();
+      cacheService.cacheSkills(skills);
       res.json(skills);
     } catch (error) {
       console.error("Error fetching skills:", error);
@@ -159,6 +210,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const requesterId = req.user.id;
       const swapRequestData = insertSwapRequestSchema.parse({ ...req.body, requesterId });
       const swapRequest = await storage.createSwapRequest(swapRequestData);
+      
+      // Send real-time notification to receiver
+      if (wsService) {
+        wsService.sendNotificationToUser(swapRequestData.receiverId, {
+          type: 'new_swap_request',
+          swapRequest,
+          requester: req.user
+        });
+      }
+      
+      // Send email notification
+      try {
+        const receiver = await storage.getUser(swapRequestData.receiverId);
+        const offeredSkill = await storage.getSkillById(swapRequestData.offeredSkillId);
+        const requestedSkill = await storage.getSkillById(swapRequestData.requestedSkillId);
+        
+        if (receiver && offeredSkill && requestedSkill) {
+          await emailService.sendSwapRequestNotification(
+            receiver, req.user, offeredSkill, requestedSkill, swapRequestData.message || undefined
+          );
+        }
+      } catch (emailError) {
+        console.warn('Failed to send email notification:', emailError);
+      }
+      
       res.status(201).json(swapRequest);
     } catch (error) {
       console.error("Error creating swap request:", error);
@@ -273,6 +349,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating user status:", error);
       res.status(500).json({ message: "Failed to update user status" });
+    }
+  });
+
+  // Database health check endpoint
+  app.get("/api/health", async (req, res) => {
+    try {
+      const { checkDatabaseHealth } = await import('./db-health');
+      const health = await checkDatabaseHealth();
+      
+      if (health.healthy) {
+        res.json({ status: 'healthy', database: 'connected' });
+      } else {
+        res.status(503).json({ 
+          status: 'unhealthy', 
+          database: 'disconnected',
+          error: health.error 
+        });
+      }
+    } catch (error) {
+      res.status(503).json({ 
+        status: 'error', 
+        message: error instanceof Error ? error.message : 'Unknown error' 
+      });
     }
   });
 

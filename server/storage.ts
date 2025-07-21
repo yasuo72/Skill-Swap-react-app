@@ -37,6 +37,7 @@ export interface IStorage {
   // Skill operations
   getAllSkills(): Promise<Skill[]>;
   createSkill(skill: InsertSkill): Promise<Skill>;
+  getSkillById(id: number): Promise<Skill | undefined>;
   searchSkills(query: string): Promise<Skill[]>;
   
   // User skills operations
@@ -108,6 +109,11 @@ export class DatabaseStorage implements IStorage {
     return newSkill;
   }
 
+  async getSkillById(id: number): Promise<Skill | undefined> {
+    const [skill] = await db.select().from(skills).where(eq(skills.id, id));
+    return skill || undefined;
+  }
+
   async searchSkills(query: string): Promise<Skill[]> {
     return await db.select().from(skills).where(ilike(skills.name, `%${query}%`));
   }
@@ -175,15 +181,17 @@ export class DatabaseStorage implements IStorage {
     const limit = filters?.limit || 10;
     const offset = filters?.offset || 0;
     
-    const baseQuery = db.select().from(users).where(eq(users.isPublic, true));
-    
-    let query = baseQuery;
+    let whereCondition;
     if (filters?.location) {
-      query = baseQuery.where(and(
+      whereCondition = and(
         eq(users.isPublic, true),
         ilike(users.location, `%${filters.location}%`)
-      ));
+      );
+    } else {
+      whereCondition = eq(users.isPublic, true);
     }
+    
+    const query = db.select().from(users).where(whereCondition);
     
     const usersList = await query.limit(limit).offset(offset);
     
@@ -264,10 +272,32 @@ export class DatabaseStorage implements IStorage {
       .where(or(eq(swapRequests.requesterId, userId), eq(swapRequests.receiverId, userId)));
     
     if (status) {
-      query = query.where(and(
-        or(eq(swapRequests.requesterId, userId), eq(swapRequests.receiverId, userId)),
-        eq(swapRequests.status, status)
-      ));
+      query = db
+        .select({
+          id: swapRequests.id,
+          requesterId: swapRequests.requesterId,
+          receiverId: swapRequests.receiverId,
+          offeredSkillId: swapRequests.offeredSkillId,
+          requestedSkillId: swapRequests.requestedSkillId,
+          message: swapRequests.message,
+          status: swapRequests.status,
+          preferredTime: swapRequests.preferredTime,
+          createdAt: swapRequests.createdAt,
+          updatedAt: swapRequests.updatedAt,
+          requester: users,
+          receiver: userAlias,
+          offeredSkill: offeredSkillAlias,
+          requestedSkill: requestedSkillAlias,
+        })
+        .from(swapRequests)
+        .innerJoin(users, eq(swapRequests.requesterId, users.id))
+        .innerJoin(userAlias, eq(swapRequests.receiverId, userAlias.id))
+        .innerJoin(offeredSkillAlias, eq(swapRequests.offeredSkillId, offeredSkillAlias.id))
+        .innerJoin(requestedSkillAlias, eq(swapRequests.requestedSkillId, requestedSkillAlias.id))
+        .where(and(
+          or(eq(swapRequests.requesterId, userId), eq(swapRequests.receiverId, userId)),
+          eq(swapRequests.status, status)
+        ));
     }
     
     return await query.orderBy(desc(swapRequests.createdAt));

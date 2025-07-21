@@ -60,11 +60,19 @@ export default function AuthPage() {
   });
 
   const onLogin = (data: LoginFormData) => {
-    loginMutation.mutate(data);
+    loginMutation.mutate(data, {
+      onSuccess: () => {
+        navigate("/");
+      }
+    });
   };
 
   const onRegister = (data: RegisterFormData) => {
-    registerMutation.mutate(data);
+    registerMutation.mutate(data, {
+      onSuccess: () => {
+        navigate("/");
+      }
+    });
   };
 
   if (isLoading) {

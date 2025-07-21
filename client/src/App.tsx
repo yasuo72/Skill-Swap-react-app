@@ -33,13 +33,11 @@ function Router() {
           <Route path="/browse" component={Browse} />
           <Route path="/swaps" component={Swaps} />
           <Route path="/admin" component={Admin} />
-          <Route component={NotFound} />
         </>
       ) : (
         <>
           <Route path="/" component={Landing} />
           <Route path="/auth" component={AuthPage} />
-          <Route component={Landing} />
         </>
       )}
     </Switch>

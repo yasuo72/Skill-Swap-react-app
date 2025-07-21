@@ -16,34 +16,28 @@ export default function MobileNav() {
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
       <div className="grid grid-cols-5 h-16">
-        <Link href="/">
-          <a className={`flex flex-col items-center justify-center transition-colors ${
+        <Link href="/" className={`flex flex-col items-center justify-center transition-colors ${
             isActive("/") ? "text-blue-600" : "text-gray-600"
           }`}>
-            <Home className="h-5 w-5 mb-1" />
-            <span className="text-xs">Home</span>
-          </a>
+          <Home className="h-5 w-5 mb-1" />
+          <span className="text-xs">Home</span>
         </Link>
         
-        <Link href="/browse">
-          <a className={`flex flex-col items-center justify-center transition-colors ${
+        <Link href="/browse" className={`flex flex-col items-center justify-center transition-colors ${
             isActive("/browse") ? "text-blue-600" : "text-gray-600"
           }`}>
-            <Search className="h-5 w-5 mb-1" />
-            <span className="text-xs">Browse</span>
-          </a>
+          <Search className="h-5 w-5 mb-1" />
+          <span className="text-xs">Browse</span>
         </Link>
         
-        <Link href="/swaps">
-          <a className={`flex flex-col items-center justify-center transition-colors relative ${
+        <Link href="/swaps" className={`flex flex-col items-center justify-center transition-colors relative ${
             isActive("/swaps") ? "text-blue-600" : "text-gray-600"
           }`}>
-            <ArrowLeftRight className="h-5 w-5 mb-1" />
-            <span className="text-xs">Swaps</span>
-            <Badge variant="destructive" className="absolute -top-1 -right-1 w-4 h-4 text-xs p-0 flex items-center justify-center">
-              3
-            </Badge>
-          </a>
+          <ArrowLeftRight className="h-5 w-5 mb-1" />
+          <span className="text-xs">Swaps</span>
+          <Badge variant="destructive" className="absolute -top-1 -right-1 w-4 h-4 text-xs p-0 flex items-center justify-center">
+            3
+          </Badge>
         </Link>
         
         <button className="flex flex-col items-center justify-center text-gray-600 relative">
@@ -54,13 +48,11 @@ export default function MobileNav() {
           </Badge>
         </button>
         
-        <Link href="/profile">
-          <a className={`flex flex-col items-center justify-center transition-colors ${
+        <Link href="/profile" className={`flex flex-col items-center justify-center transition-colors ${
             isActive("/profile") ? "text-blue-600" : "text-gray-600"
           }`}>
-            <User className="h-5 w-5 mb-1" />
-            <span className="text-xs">Profile</span>
-          </a>
+          <User className="h-5 w-5 mb-1" />
+          <span className="text-xs">Profile</span>
         </Link>
       </div>
     </div>

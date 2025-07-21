@@ -6,7 +6,7 @@ import { Bell, Menu, ArrowRight } from "lucide-react";
 import { useState } from "react";
 
 export default function Header() {
-  const { user } = useAuth();
+  const { user, logoutMutation } = useAuth();
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -32,31 +32,21 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/">
-              <a className={`transition-colors ${isActive("/") ? "text-blue-600" : "text-gray-700 hover:text-blue-600"}`}>
-                Home
-              </a>
+            <Link href="/" className={`transition-colors ${isActive("/") ? "text-blue-600" : "text-gray-700 hover:text-blue-600"}`}>
+              Home
             </Link>
-            <Link href="/browse">
-              <a className={`transition-colors ${isActive("/browse") ? "text-blue-600" : "text-gray-700 hover:text-blue-600"}`}>
-                Browse
-              </a>
+            <Link href="/browse" className={`transition-colors ${isActive("/browse") ? "text-blue-600" : "text-gray-700 hover:text-blue-600"}`}>
+              Browse
             </Link>
-            <Link href="/swaps">
-              <a className={`transition-colors ${isActive("/swaps") ? "text-blue-600" : "text-gray-700 hover:text-blue-600"}`}>
-                My Swaps
-              </a>
+            <Link href="/swaps" className={`transition-colors ${isActive("/swaps") ? "text-blue-600" : "text-gray-700 hover:text-blue-600"}`}>
+              My Swaps
             </Link>
-            <Link href="/profile">
-              <a className={`transition-colors ${isActive("/profile") ? "text-blue-600" : "text-gray-700 hover:text-blue-600"}`}>
-                Profile
-              </a>
+            <Link href="/profile" className={`transition-colors ${isActive("/profile") ? "text-blue-600" : "text-gray-700 hover:text-blue-600"}`}>
+              Profile
             </Link>
             {user && user.isAdmin && (
-              <Link href="/admin">
-                <a className={`transition-colors ${isActive("/admin") ? "text-blue-600" : "text-gray-700 hover:text-blue-600"}`}>
-                  Admin
-                </a>
+              <Link href="/admin" className={`transition-colors ${isActive("/admin") ? "text-blue-600" : "text-gray-700 hover:text-blue-600"}`}>
+                Admin
               </Link>
             )}
           </nav>
@@ -84,7 +74,7 @@ export default function Header() {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => window.location.href = "/api/logout"}
+              onClick={() => logoutMutation.mutate()}
               className="hidden sm:inline-flex"
             >
               Logout
@@ -106,37 +96,27 @@ export default function Header() {
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200 py-4">
             <nav className="flex flex-col space-y-2">
-              <Link href="/">
-                <a className={`px-4 py-2 rounded-lg transition-colors ${isActive("/") ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}>
-                  Home
-                </a>
+              <Link href="/" className={`px-4 py-2 rounded-lg transition-colors ${isActive("/") ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}>
+                Home
               </Link>
-              <Link href="/browse">
-                <a className={`px-4 py-2 rounded-lg transition-colors ${isActive("/browse") ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}>
-                  Browse
-                </a>
+              <Link href="/browse" className={`px-4 py-2 rounded-lg transition-colors ${isActive("/browse") ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}>
+                Browse
               </Link>
-              <Link href="/swaps">
-                <a className={`px-4 py-2 rounded-lg transition-colors ${isActive("/swaps") ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}>
-                  My Swaps
-                </a>
+              <Link href="/swaps" className={`px-4 py-2 rounded-lg transition-colors ${isActive("/swaps") ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}>
+                My Swaps
               </Link>
-              <Link href="/profile">
-                <a className={`px-4 py-2 rounded-lg transition-colors ${isActive("/profile") ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}>
-                  Profile
-                </a>
+              <Link href="/profile" className={`px-4 py-2 rounded-lg transition-colors ${isActive("/profile") ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}>
+                Profile
               </Link>
               {user && user.isAdmin && (
-                <Link href="/admin">
-                  <a className={`px-4 py-2 rounded-lg transition-colors ${isActive("/admin") ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}>
-                    Admin
-                  </a>
+                <Link href="/admin" className={`px-4 py-2 rounded-lg transition-colors ${isActive("/admin") ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}>
+                  Admin
                 </Link>
               )}
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => window.location.href = "/api/logout"}
+                onClick={() => logoutMutation.mutate()}
                 className="mx-4 mt-2"
               >
                 Logout

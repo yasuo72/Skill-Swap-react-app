@@ -3,6 +3,7 @@ import { useQuery, useMutation, UseMutationResult, useQueryClient } from "@tanst
 import { User } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 type AuthContextType = {
   user: User | null;
@@ -32,6 +33,7 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
   
   const { data: user, error, isLoading } = useQuery<User>({
     queryKey: ["/api/user"],
@@ -90,6 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "Logged out",
         description: "You have been logged out successfully.",
       });
+      navigate("/");
     },
     onError: (error: Error) => {
       toast({
